@@ -1,5 +1,6 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import (Flask, render_template, request, redirect,
+                   url_for, flash, send_from_directory)
 from models import (ProductoFisico, ProductoDigital,
                      cargar_inventario, guardar_inventario, registrar_venta,
                      inicializar_bd)
@@ -18,6 +19,12 @@ inicializar_bd(RUTA_BD)
 
 
 # ── Rutas ────────────────────────────────────────────────
+
+@app.route("/sw.js")
+def service_worker():
+    return send_from_directory(app.static_folder, "sw.js",
+                               mimetype="application/javascript")
+
 
 @app.route("/")
 def inicio():

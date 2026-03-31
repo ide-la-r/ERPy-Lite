@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block titulo %}Nuevo Producto - ERPy-Lite{% endblock %}
+
+{% block contenido %}
+<div class="page-header">
+    <h2><i class="bi bi-plus-circle"></i> Nuevo Producto</h2>
+    <a href="/inventario" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-box-seam"></i> Datos del producto
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="/producto/nuevo">
+
+                    <!-- Tipo de producto -->
+                    <div class="mb-3">
+                        <label for="tipo" class="form-label">Tipo de producto</label>
+                        <select class="form-select" id="tipo" name="tipo" required>
+                            <option value="ProductoFisico">Producto Físico</option>
+                            <option value="ProductoDigital">Producto Digital</option>
+                        </select>
+                    </div>
+
+                    <!-- Campos comunes -->
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="nombre"
+                                   name="nombre" placeholder="Ej: Teclado mecánico" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="stock" class="form-label">Stock inicial</label>
+                            <input type="number" class="form-control" id="stock"
+                                   name="stock" value="0" min="0" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="precio_base" class="form-label">Precio base (€)</label>
+                        <input type="number" class="form-control" id="precio_base"
+                               name="precio_base" step="0.01" min="0" placeholder="0.00" required>
+                    </div>
+
+                    <!-- Campos Producto Físico -->
+                    <div id="campos-fisico">
+                        <hr>
+                        <h6 class="text-muted mb-3">
+                            <i class="bi bi-box"></i> Datos de producto físico
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="peso_kg" class="form-label">Peso (kg)</label>
+                                <input type="number" class="form-control" id="peso_kg"
+                                       name="peso_kg" step="0.01" min="0" value="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="costo_envio" class="form-label">Coste de envío (€)</label>
+                                <input type="number" class="form-control" id="costo_envio"
+                                       name="costo_envio" step="0.01" min="0" value="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Campos Producto Digital -->
+                    <div id="campos-digital" style="display: none;">
+                        <hr>
+                        <h6 class="text-muted mb-3">
+                            <i class="bi bi-cloud"></i> Datos de producto digital
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="tamano_mb" class="form-label">Tamaño (MB)</label>
+                                <input type="number" class="form-control" id="tamano_mb"
+                                       name="tamano_mb" step="0.01" min="0" value="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="enlace_descarga" class="form-label">Enlace de descarga</label>
+                                <input type="text" class="form-control" id="enlace_descarga"
+                                       name="enlace_descarga" placeholder="https://...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> Guardar Producto
+                        </button>
+                        <a href="/inventario" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const tipoSelect = document.getElementById('tipo');
+    const camposFisico = document.getElementById('campos-fisico');
+    const camposDigital = document.getElementById('campos-digital');
+
+    tipoSelect.addEventListener('change', function () {
+        if (this.value === 'ProductoFisico') {
+            camposFisico.style.display = 'block';
+            camposDigital.style.display = 'none';
+        } else {
+            camposFisico.style.display = 'none';
+            camposDigital.style.display = 'block';
+        }
+    });
+</script>
+{% endblock %}

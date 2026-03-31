@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block titulo %}Análisis - ERPy-Lite{% endblock %}
+
+{% block contenido %}
+<div class="page-header">
+    <h2><i class="bi bi-bar-chart-line"></i> Análisis de Ventas</h2>
+</div>
+
+{% if resumen %}
+<!-- ── Tarjetas resumen ────────────────────────────────── -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon" style="background: #ede9fe; color: #6d28d9;">
+            <i class="bi bi-receipt"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-value">{{ resumen.total_registros }}</span>
+            <span class="stat-label">Ventas totales</span>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: #dbeafe; color: #1e40af;">
+            <i class="bi bi-cash-stack"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-value">{{ "%.2f"|format(resumen.ingresos_brutos) }} €</span>
+            <span class="stat-label">Ingresos brutos</span>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: #dcfce7; color: #166534;">
+            <i class="bi bi-graph-up-arrow"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-value">{{ "%.2f"|format(resumen.venta_media) }} €</span>
+            <span class="stat-label">Venta media</span>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: #fef3c7; color: #92400e;">
+            <i class="bi bi-calendar-range"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-value">{{ resumen.fecha_inicio }}</span>
+            <span class="stat-label">hasta {{ resumen.fecha_fin }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- ── Desglose por tipo ──────────────────────────────── -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="bi bi-pie-chart"></i> Desglose por tipo de producto
+    </div>
+    <div class="card-body p-0">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Unidades vendidas</th>
+                    <th>Ingresos</th>
+                    <th>% del total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tipo, datos in resumen.por_tipo.items() %}
+                <tr>
+                    <td>
+                        {% if tipo == "ProductoFisico" %}
+                            <span class="badge-fisico">Físico</span>
+                        {% else %}
+                            <span class="badge-digital">Digital</span>
+                        {% endif %}
+                    </td>
+                    <td><strong>{{ datos.unidades|int }}</strong></td>
+                    <td>{{ "%.2f"|format(datos.ingresos) }} €</td>
+                    <td>
+                        {% set pct = (datos.ingresos / resumen.ingresos_brutos * 100) if resumen.ingresos_brutos > 0 else 0 %}
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill {% if tipo == 'ProductoFisico' %}bar-fisico{% else %}bar-digital{% endif %}"
+                                 style="width: {{ pct }}%"></div>
+                        </div>
+                        <small class="text-muted">{{ "%.1f"|format(pct) }}%</small>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- ── Gráficos ───────────────────────────────────────── -->
+<div class="charts-grid">
+    <div class="chart-card">
+        <div class="chart-header">
+            <h5><i class="bi bi-bar-chart"></i> Ventas por tipo (trimestre)</h5>
+        </div>
+        {% if img_barras %}
+            <img src="data:image/png;base64,{{ img_barras }}" alt="Gráfico de barras" class="chart-img">
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-bar-chart"></i>
+                <h5>Sin datos suficientes</h5>
+                <p>Registra ventas para ver el gráfico de barras del último trimestre.</p>
+            </div>
+        {% endif %}
+    </div>
+
+
+    <div class="chart-card">
+        <div class="chart-header">
+            <h5><i class="bi bi-graph-up"></i> Ingresos mensuales</h5>
+        </div>
+        {% if img_lineas %}
+            <img src="data:image/png;base64,{{ img_lineas }}" alt="Gráfico de líneas" class="chart-img">
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-graph-up"></i>
+                <h5>Sin datos suficientes</h5>
+                <p>Registra ventas para ver la evolución de ingresos mensuales.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if not resumen %}
+<div class="empty-state mt-4">
+    <i class="bi bi-clipboard-data"></i>
+    <h5>No hay datos de ventas aún</h5>
+    <p>Registra tu primera venta para empezar a ver estadísticas y gráficos.</p>
+    <a href="/venta/nueva" class="btn btn-primary mt-2">
+        <i class="bi bi-plus-lg"></i> Registrar Venta
+    </a>
+</div>
+{% endif %}
+{% endblock %}

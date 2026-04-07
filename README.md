@@ -10,6 +10,10 @@ ERPy-Lite es una herramienta web ligera que permite a pequeños negocios control
 
 Para **pequeños negocios y autónomos** — tiendas online, comercios locales, emprendedores — que venden tanto productos físicos (ropa, electrónica, muebles) como productos digitales (ebooks, software, cursos) y necesitan un sistema sencillo sin la complejidad de un SAP u Odoo.
 
+## ¿Donde ver?
+
+https://erpy-lite.onrender.com/
+
 ## Módulos
 
 | Módulo | Descripción |

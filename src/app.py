@@ -1,9 +1,10 @@
 import os
+from functools import wraps
 from flask import (Flask, render_template, request, redirect,
-                   url_for, flash, send_from_directory)
+                   url_for, flash, send_from_directory, session)
 from models import (ProductoFisico, ProductoDigital,
                      cargar_inventario, guardar_inventario, registrar_venta,
-                     inicializar_bd)
+                     inicializar_bd, crear_usuario, buscar_usuario, verificar_contraseña)
 from analytics import (cargar_ventas, limpiar_datos, resumen_ventas,
                        grafico_barras_base64, grafico_lineas_base64,
                        resumen_ventas_dict)
@@ -18,6 +19,19 @@ RUTA_BD = os.path.join(BASE_DIR, "data", "erpy.db")
 inicializar_bd(RUTA_BD)
 
 
+# ── Decorador de protección ──────────────────────────────────
+
+def login_requerido(f):
+    """Decorador que requiere estar logueado."""
+    @wraps(f)
+    def decorador_login(*args, **kwargs):
+        if "usuario_id" not in session:
+            flash("Debes iniciar sesión primero", "warning")
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorador_login
+
+
 # ── Rutas ────────────────────────────────────────────────
 
 @app.route("/sw.js")
@@ -28,10 +42,79 @@ def service_worker():
 
 @app.route("/")
 def inicio():
-    return redirect(url_for("inventario"))
+    if "usuario_id" in session:
+        return redirect(url_for("inventario"))
+    return redirect(url_for("login"))
+
+
+@app.route("/registro", methods=["GET", "POST"])
+def registro():
+    """GET: mostrar formulario. POST: crear usuario."""
+    if request.method == "POST":
+        email = request.form.get("email", "").strip()
+        nombre = request.form.get("nombre", "").strip()
+        contraseña = request.form.get("contraseña", "")
+        contraseña2 = request.form.get("contraseña2", "")
+
+        if not email or not nombre or not contraseña:
+            flash("Todos los campos son obligatorios", "danger")
+            return redirect(url_for("registro"))
+
+        if contraseña != contraseña2:
+            flash("Las contraseñas no coinciden", "danger")
+            return redirect(url_for("registro"))
+
+        if len(contraseña) < 6:
+            flash("La contraseña debe tener al menos 6 caracteres", "danger")
+            return redirect(url_for("registro"))
+
+        if crear_usuario(email, contraseña, nombre, RUTA_BD):
+            flash("Usuario creado exitosamente. Inicia sesión.", "success")
+            return redirect(url_for("login"))
+        else:
+            flash("El email ya está registrado", "danger")
+            return redirect(url_for("registro"))
+
+    return render_template("registro.html")
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    """GET: mostrar formulario. POST: autenticar usuario."""
+    if request.method == "POST":
+        email = request.form.get("email", "").strip()
+        contraseña = request.form.get("contraseña", "")
+
+        if not email or not contraseña:
+            flash("Email y contraseña son obligatorios", "danger")
+            return redirect(url_for("login"))
+
+        if verificar_contraseña(email, contraseña, RUTA_BD):
+            usuario = buscar_usuario(email, RUTA_BD)
+            session["usuario_id"] = usuario["id_usuario"]
+            session["usuario_email"] = usuario["email"]
+            session["usuario_nombre"] = usuario["nombre"]
+            flash(f"¡Bienvenido, {usuario['nombre']}!", "success")
+            return redirect(url_for("inventario"))
+        else:
+            flash("Email o contraseña incorrectos", "danger")
+            return redirect(url_for("login"))
+
+    return render_template("login.html")
+
+
+@app.route("/logout")
+def logout():
+    """Cierra la sesión del usuario."""
+    session.clear()
+    flash("Sesión cerrada", "info")
+    return redirect(url_for("login"))
+
+
 
 
 @app.route("/inventario")
+@login_requerido
 def inventario():
     productos = cargar_inventario(RUTA_BD)
     return render_template("inventario.html", productos=productos)
@@ -40,6 +123,7 @@ def inventario():
 # ── Producto: crear ──────────────────────────────────────
 
 @app.route("/producto/nuevo", methods=["GET", "POST"])
+@login_requerido
 def producto_nuevo():
     if request.method == "GET":
         return render_template("producto_form.html")
@@ -78,6 +162,7 @@ def producto_nuevo():
 # ── Producto: actualizar stock ───────────────────────────
 
 @app.route("/producto/<int:id_producto>/stock", methods=["POST"])
+@login_requerido
 def actualizar_stock(id_producto):
     try:
         cantidad = int(request.form["cantidad"])
@@ -102,6 +187,7 @@ def actualizar_stock(id_producto):
 # ── Venta: registrar ────────────────────────────────────
 
 @app.route("/venta/nueva", methods=["GET", "POST"])
+@login_requerido
 def venta_nueva():
     productos = cargar_inventario(RUTA_BD)
 
@@ -136,6 +222,7 @@ def venta_nueva():
 # ── Análisis de datos ────────────────────────────────────
 
 @app.route("/analytics")
+@login_requerido
 def analytics():
     try:
         df = cargar_ventas(RUTA_BD)

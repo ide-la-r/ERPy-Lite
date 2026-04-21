@@ -47,6 +47,21 @@
                        href="/analytics">
                         <i class="bi bi-graph-up"></i> Análisis
                     </a>
+                    <div class="nav-divider" style="width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 1rem;"></div>
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" 
+                           role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i>
+                            {{ session.get('usuario_nombre', 'Usuario') }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><span class="dropdown-item-text">{{ session.get('usuario_email', '') }}</span></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/logout">
+                                <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                            </a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>

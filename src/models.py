@@ -12,6 +12,7 @@ Persistencia en disco mediante base de datos SQLite en data/.
 import os
 import sqlite3
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 class Producto:
@@ -220,10 +221,19 @@ _CONSTRUCTORES = {
 
 
 def inicializar_bd(ruta_bd: str):
-    """Crea las tablas de productos y ventas si no existen."""
+    """Crea las tablas de productos, ventas y usuarios si no existen."""
     os.makedirs(os.path.dirname(ruta_bd) or ".", exist_ok=True)
     conn = sqlite3.connect(ruta_bd)
     cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id_usuario  INTEGER PRIMARY KEY AUTOINCREMENT,
+            email       TEXT UNIQUE NOT NULL,
+            contraseña  TEXT NOT NULL,
+            nombre      TEXT NOT NULL,
+            fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS productos (
             id_producto     INTEGER PRIMARY KEY,
@@ -328,3 +338,43 @@ def registrar_venta(producto: Producto, cantidad: int, ruta_bd: str):
     ))
     conn.commit()
     conn.close()
+
+
+# ── Gestión de usuarios ──────────────────────────────────────
+
+def crear_usuario(email: str, contraseña: str, nombre: str, ruta_bd: str) -> bool:
+    """Crea un nuevo usuario. Retorna True si éxito, False si ya existe."""
+    inicializar_bd(ruta_bd)
+    try:
+        conn = sqlite3.connect(ruta_bd)
+        cursor = conn.cursor()
+        contraseña_hash = generate_password_hash(contraseña)
+        cursor.execute("""
+            INSERT INTO usuarios (email, contraseña, nombre)
+            VALUES (?, ?, ?)
+        """, (email, contraseña_hash, nombre))
+        conn.commit()
+        conn.close()
+        return True
+    except sqlite3.IntegrityError:  # Email ya existe
+        return False
+
+
+def buscar_usuario(email: str, ruta_bd: str) -> dict | None:
+    """Busca un usuario por email. Retorna dict con datos o None."""
+    inicializar_bd(ruta_bd)
+    conn = sqlite3.connect(ruta_bd)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM usuarios WHERE email = ?", (email,))
+    fila = cursor.fetchone()
+    conn.close()
+    return dict(fila) if fila else None
+
+
+def verificar_contraseña(email: str, contraseña: str, ruta_bd: str) -> bool:
+    """Verifica email y contraseña. Retorna True si son correctos."""
+    usuario = buscar_usuario(email, ruta_bd)
+    if not usuario:
+        return False
+    return check_password_hash(usuario["contraseña"], contraseña)

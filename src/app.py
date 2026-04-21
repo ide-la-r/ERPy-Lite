@@ -4,7 +4,8 @@ from flask import (Flask, render_template, request, redirect,
                    url_for, flash, send_from_directory, session)
 from models import (ProductoFisico, ProductoDigital,
                      cargar_inventario, guardar_inventario, registrar_venta,
-                     inicializar_bd, crear_usuario, buscar_usuario, verificar_contraseña)
+                     inicializar_bd, crear_usuario, buscar_usuario, verificar_contraseña,
+                     buscar_usuario_por_id, actualizar_usuario)
 from analytics import (cargar_ventas, limpiar_datos, resumen_ventas,
                        grafico_barras_base64, grafico_lineas_base64,
                        resumen_ventas_dict)
@@ -109,6 +110,53 @@ def logout():
     session.clear()
     flash("Sesión cerrada", "info")
     return redirect(url_for("login"))
+
+
+@app.route("/perfil", methods=["GET", "POST"])
+@login_requerido
+def perfil():
+    """GET: mostrar perfil. POST: actualizar datos del usuario."""
+    usuario = buscar_usuario_por_id(session["usuario_id"], RUTA_BD)
+    if not usuario:
+        flash("Usuario no encontrado", "danger")
+        return redirect(url_for("inventario"))
+
+    if request.method == "POST":
+        nombre = request.form.get("nombre", "").strip()
+        email = request.form.get("email", "").strip()
+        contraseña_actual = request.form.get("contraseña_actual", "")
+        contraseña_nueva = request.form.get("contraseña_nueva", "")
+        contraseña_confirmar = request.form.get("contraseña_confirmar", "")
+
+        if not nombre or not email:
+            flash("Nombre y email son obligatorios", "danger")
+            return render_template("perfil.html", usuario=usuario)
+
+        # Si quiere cambiar contraseña, validar
+        nueva_pwd = None
+        if contraseña_nueva:
+            if not verificar_contraseña(usuario["email"], contraseña_actual, RUTA_BD):
+                flash("La contraseña actual es incorrecta", "danger")
+                return render_template("perfil.html", usuario=usuario)
+            if contraseña_nueva != contraseña_confirmar:
+                flash("Las contraseñas nuevas no coinciden", "danger")
+                return render_template("perfil.html", usuario=usuario)
+            if len(contraseña_nueva) < 6:
+                flash("La nueva contraseña debe tener al menos 6 caracteres", "danger")
+                return render_template("perfil.html", usuario=usuario)
+            nueva_pwd = contraseña_nueva
+
+        if actualizar_usuario(session["usuario_id"], nombre, email, nueva_pwd, RUTA_BD):
+            # Actualizar datos de sesión
+            session["usuario_nombre"] = nombre
+            session["usuario_email"] = email
+            flash("Perfil actualizado correctamente", "success")
+            return redirect(url_for("perfil"))
+        else:
+            flash("El email ya está en uso por otro usuario", "danger")
+            return render_template("perfil.html", usuario=usuario)
+
+    return render_template("perfil.html", usuario=usuario)
 
 
 

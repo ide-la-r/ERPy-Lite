@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrarse - ERPy-Lite</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         .auth-container {
@@ -12,109 +14,221 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--bg);
+            position: relative;
+            overflow: hidden;
         }
+
+        .auth-container::before {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+            top: -150px;
+            right: -100px;
+            border-radius: 50%;
+        }
+
+        .auth-container::after {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, transparent 70%);
+            bottom: -100px;
+            left: -80px;
+            border-radius: 50%;
+        }
+
         .auth-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
             padding: 2.5rem;
             width: 100%;
             max-width: 450px;
+            position: relative;
+            z-index: 1;
+            transition: box-shadow 0.3s ease;
         }
+
+        .auth-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .auth-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-brand-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--nav-bg);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: var(--primary);
+        }
+
+        .auth-brand h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
         .auth-header {
             text-align: center;
             margin-bottom: 2rem;
         }
-        .auth-header h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-        }
+
         .auth-header p {
-            color: #666;
-            font-size: 0.95rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            margin-bottom: 0;
         }
-        .form-control {
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
-            padding: 0.75rem 1rem;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
+
+        .form-label {
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--text);
+            margin-bottom: 0.35rem;
         }
-        .form-control:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+
+        .auth-card .form-control {
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            padding: 0.7rem 0.9rem;
+            font-size: 0.9rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background: var(--card-bg);
+            color: var(--text);
         }
-        .form-control::placeholder {
-            color: #999;
+
+        .auth-card .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
         }
+
+        .auth-card .form-control::placeholder {
+            color: var(--text-muted);
+        }
+
         .btn-register {
             width: 100%;
-            padding: 0.75rem;
-            font-size: 1rem;
+            padding: 0.7rem;
+            font-size: 0.95rem;
             font-weight: 600;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary);
             border: none;
-            border-radius: 8px;
+            border-radius: 0.5rem;
             color: white;
-            transition: all 0.3s ease;
-            margin-top: 1rem;
+            transition: all 0.2s ease;
+            margin-top: 0.75rem;
         }
+
         .btn-register:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
             color: white;
         }
+
+        .btn-register:active {
+            transform: translateY(0);
+        }
+
         .auth-link {
             text-align: center;
             margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
         }
+
         .auth-link p {
-            color: #666;
-            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
             margin-bottom: 0;
         }
+
         .auth-link a {
-            color: #667eea;
+            color: var(--primary);
             text-decoration: none;
             font-weight: 600;
-            transition: color 0.3s ease;
+            transition: color 0.2s ease;
         }
+
         .auth-link a:hover {
-            color: #764ba2;
+            color: var(--primary-hover);
         }
-        .alert {
-            border-radius: 8px;
+
+        .auth-card .alert {
+            border-radius: var(--radius);
             border: none;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
+            font-weight: 500;
+            font-size: 0.875rem;
         }
-        .alert-danger {
-            background-color: #fee;
-            color: #c33;
+
+        .auth-card .alert-danger {
+            background-color: #fee2e2;
+            color: #991b1b;
         }
+
+        .input-group-icon {
+            position: relative;
+        }
+
+        .input-group-icon .form-control {
+            padding-left: 2.5rem;
+        }
+
+        .input-group-icon .input-icon {
+            position: absolute;
+            left: 0.85rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            z-index: 2;
+            pointer-events: none;
+        }
+
         .password-strength {
-            font-size: 0.8rem;
-            margin-top: 0.3rem;
-            padding: 0.3rem 0.6rem;
-            border-radius: 4px;
+            font-size: 0.78rem;
+            margin-top: 0.4rem;
+            padding: 0.3rem 0.65rem;
+            border-radius: 0.375rem;
             display: none;
+            font-weight: 500;
         }
+
         .password-strength.weak {
             display: block;
-            background-color: #ffebee;
-            color: #c62828;
+            background-color: #fee2e2;
+            color: #991b1b;
         }
+
         .password-strength.ok {
             display: block;
-            background-color: #fff3e0;
-            color: #e65100;
+            background-color: #fef9c3;
+            color: #854d0e;
         }
+
         .password-strength.strong {
             display: block;
-            background-color: #e8f5e9;
-            color: #2e7d32;
+            background-color: #dcfce7;
+            color: #166534;
         }
     </style>
 </head>
@@ -122,15 +236,20 @@
     <div class="auth-container">
         <div class="auth-card">
             <div class="auth-header">
-                <h1>👤 Crear Cuenta</h1>
-                <p>Únete a ERPy-Lite hoy</p>
+                <div class="auth-brand">
+                    <div class="auth-brand-icon">
+                        <i class="bi bi-box-seam-fill"></i>
+                    </div>
+                    <h1>ERPy-Lite</h1>
+                </div>
+                <p>Crea tu cuenta para empezar</p>
             </div>
 
             {% with mensajes = get_flashed_messages(category_filter=["danger", "warning"]) %}
                 {% if mensajes %}
                     {% for msg in mensajes %}
                         <div class="alert alert-danger" role="alert">
-                            {{ msg }}
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ msg }}
                         </div>
                     {% endfor %}
                 {% endif %}
@@ -139,31 +258,44 @@
             <form method="POST">
                 <div class="mb-3">
                     <label for="email" class="form-label">Email</label>
-                    <input type="email" class="form-control" id="email" 
-                           name="email" placeholder="tu@email.com" required>
+                    <div class="input-group-icon">
+                        <i class="bi bi-envelope input-icon"></i>
+                        <input type="email" class="form-control" id="email" 
+                               name="email" placeholder="tu@email.com" required>
+                    </div>
                 </div>
 
                 <div class="mb-3">
                     <label for="nombre" class="form-label">Nombre</label>
-                    <input type="text" class="form-control" id="nombre" 
-                           name="nombre" placeholder="Tu nombre" required>
+                    <div class="input-group-icon">
+                        <i class="bi bi-person input-icon"></i>
+                        <input type="text" class="form-control" id="nombre" 
+                               name="nombre" placeholder="Tu nombre" required>
+                    </div>
                 </div>
 
                 <div class="mb-3">
                     <label for="contraseña" class="form-label">Contraseña</label>
-                    <input type="password" class="form-control" id="contraseña" 
-                           name="contraseña" placeholder="••••••••" required
-                           onkeyup="verificarFuerza()">
+                    <div class="input-group-icon">
+                        <i class="bi bi-lock input-icon"></i>
+                        <input type="password" class="form-control" id="contraseña" 
+                               name="contraseña" placeholder="••••••••" required
+                               onkeyup="verificarFuerza()">
+                    </div>
                     <div id="strength" class="password-strength"></div>
                 </div>
 
                 <div class="mb-3">
                     <label for="contraseña2" class="form-label">Confirmar Contraseña</label>
-                    <input type="password" class="form-control" id="contraseña2" 
-                           name="contraseña2" placeholder="••••••••" required>
+                    <div class="input-group-icon">
+                        <i class="bi bi-lock-fill input-icon"></i>
+                        <input type="password" class="form-control" id="contraseña2" 
+                               name="contraseña2" placeholder="••••••••" required>
+                    </div>
                 </div>
 
                 <button type="submit" class="btn btn-register">
+                    <i class="bi bi-person-plus me-1"></i>
                     Crear Cuenta
                 </button>
             </form>
@@ -180,10 +312,10 @@
             const strength = document.getElementById('strength');
             
             if (pwd.length < 6) {
-                strength.textContent = '❌ Contraseña muy corta (mínimo 6 caracteres)';
+                strength.textContent = '✕ Contraseña muy corta (mínimo 6 caracteres)';
                 strength.className = 'password-strength weak';
             } else if (pwd.length < 8) {
-                strength.textContent = '⚠️ Contraseña débil';
+                strength.textContent = '⚠ Contraseña débil';
                 strength.className = 'password-strength ok';
             } else {
                 strength.textContent = '✓ Contraseña fuerte';

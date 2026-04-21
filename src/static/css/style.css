@@ -44,7 +44,7 @@ body {
 
 /* Divider entre items del nav: por defecto compacto, se adapta según ancho */
 .nav-divider {
-    height: 2rem;;
+    height: 2rem !important;
 }
 
 .navbar .nav-link {
